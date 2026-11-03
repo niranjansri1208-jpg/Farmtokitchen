@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Supply chain curved trace route -->
+    <path
+        android:pathData="M30,76 C36,54 52,66 54,46 C56,34 68,30 78,32"
+        android:strokeWidth="3.5"
+        android:strokeColor="#748178"
+        android:strokeLineCap="round" />
+    
+    <!-- Farm root node -->
+    <path
+        android:pathData="M30,76m-5,0a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
+        android:fillColor="#8A6746" />
+    <path
+        android:pathData="M30,76m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0"
+        android:fillColor="#F7F8F0" />
+
+    <!-- Center sprout leaf (Organic vegetable) -->
+    <path
+        android:pathData="M54,34 C44,34 38,44 42,56 C45,64 54,72 54,72 C54,72 63,64 66,56 C70,44 64,34 54,34 Z"
+        android:fillColor="#35A853" />
+    <!-- Leaf vein -->
+    <path
+        android:pathData="M54,40 L54,66"
+        android:strokeWidth="2"
+        android:strokeColor="#B4E76B"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,48 L60,44"
+        android:strokeWidth="1.5"
+        android:strokeColor="#B4E76B"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,55 L48,51"
+        android:strokeWidth="1.5"
+        android:strokeColor="#B4E76B"
+        android:strokeLineCap="round" />
+
+    <!-- Fresh lime sprout accent -->
+    <path
+        android:pathData="M54,34 C58,26 66,24 70,26 C72,32 68,38 60,38 Z"
+        android:fillColor="#B4E76B" />
+
+    <!-- Digital QR / Trace Target Point -->
+    <path
+        android:pathData="M78,32m-6,0a6,6 0 1,0 12,0a6,6 0 1,0 -12,0"
+        android:fillColor="#B4E76B" />
+    <path
+        android:pathData="M78,32m-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0"
+        android:fillColor="#153D2B" />
+</vector>

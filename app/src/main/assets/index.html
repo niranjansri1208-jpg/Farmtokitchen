@@ -1,0 +1,2508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FarmTrace — Smart Farm-to-Table Tracking System</title>
+  <style>
+    /* ==========================================================================
+       FarmTrace — 100% Offline Single-File Design System
+       Colors: Forest Green (#153D2B), Deep Green (#1F5939), Fresh Green (#35A853),
+               Lime (#B4E76B), Cream (#F7F8F0), Earth Brown (#8A6746)
+       ========================================================================== */
+    :root {
+      --forest-green: #153D2B;
+      --deep-green: #1F5939;
+      --fresh-green: #35A853;
+      --lime: #B4E76B;
+      --cream: #F7F8F0;
+      --white: #FFFFFF;
+      --earth-brown: #8A6746;
+      --muted-gray: #748178;
+      --dark-bg: #0C1C13;
+      --card-border: #D8E2D5;
+      --shadow-sm: 0 2px 6px rgba(21, 61, 43, 0.08);
+      --shadow-md: 0 4px 16px rgba(21, 61, 43, 0.12);
+      --shadow-lg: 0 10px 30px rgba(21, 61, 43, 0.18);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--cream);
+      color: var(--forest-green);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 72px; /* Space for bottom nav */
+    }
+
+    /* --------------------------------------------------------------------------
+       1. CINEMATIC LOGO INTRO (Splash Screen)
+       -------------------------------------------------------------------------- */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, #1b4933 0%, var(--dark-bg) 100%);
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+      overflow: hidden;
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-canvas-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .splash-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .logo-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .seed-dot {
+      width: 18px;
+      height: 18px;
+      background: var(--lime);
+      border-radius: 50%;
+      box-shadow: 0 0 20px var(--lime);
+      animation: seedPulse 1.2s infinite alternate;
+      transition: all 0.6s ease;
+    }
+
+    @keyframes seedPulse {
+      0% { transform: scale(0.8); box-shadow: 0 0 10px var(--lime); }
+      100% { transform: scale(1.3); box-shadow: 0 0 26px var(--lime); }
+    }
+
+    .logo-svg {
+      width: 130px;
+      height: 130px;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .logo-svg.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .sweep-ring {
+      position: absolute;
+      width: 136px;
+      height: 136px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--lime);
+      opacity: 0;
+      transform: rotate(0deg);
+      transition: opacity 0.4s ease;
+    }
+
+    .sweep-ring.active {
+      opacity: 1;
+      animation: ringSweep 1.6s infinite linear;
+    }
+
+    @keyframes ringSweep {
+      100% { transform: rotate(360deg); }
+    }
+
+    .brand-title {
+      color: var(--white);
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.6s ease;
+    }
+
+    .brand-title.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .brand-tagline {
+      color: var(--lime);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.6s ease 0.3s;
+    }
+
+    .brand-tagline.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .brand-subline {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 13px;
+      margin-top: 4px;
+      opacity: 0;
+      transition: opacity 0.6s ease 0.5s;
+    }
+
+    .brand-subline.revealed {
+      opacity: 1;
+    }
+
+    .skip-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: var(--cream);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s;
+    }
+
+    .skip-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: var(--lime);
+    }
+
+    .floating-veg-splash {
+      position: absolute;
+      font-size: 28px;
+      opacity: 0.25;
+      animation: floatVeg 4s infinite ease-in-out alternate;
+    }
+
+    @keyframes floatVeg {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-20px) rotate(15deg); }
+    }
+
+    /* --------------------------------------------------------------------------
+       2. TOP BAR & GLOBAL DATA MODE CONTROLLER
+       -------------------------------------------------------------------------- */
+    .app-header {
+      background: var(--forest-green);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .brand-logo-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .brand-badge-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--lime);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      color: var(--forest-green);
+      box-shadow: 0 2px 8px rgba(180, 231, 107, 0.35);
+    }
+
+    .brand-text h1 {
+      color: var(--white);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-text span {
+      color: var(--lime);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+    }
+
+    .data-mode-toggle {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 3px;
+      display: flex;
+      gap: 3px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.75);
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .mode-btn.active {
+      background: var(--lime);
+      color: var(--forest-green);
+      font-weight: 900;
+    }
+
+    .header-mode-banner {
+      background: #d97706; /* Warm Amber */
+      color: var(--white);
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s;
+    }
+
+    .header-mode-banner.original-mode {
+      background: #113422;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .banner-pill {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    /* --------------------------------------------------------------------------
+       3. FLOATING PURCHASE TOAST NOTIFICATION
+       -------------------------------------------------------------------------- */
+    #purchase-toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: rgba(21, 61, 43, 0.96);
+      border: 1.5px solid var(--lime);
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--white);
+      box-shadow: var(--shadow-lg);
+      z-index: 10000;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+      max-width: 90vw;
+    }
+
+    #purchase-toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--lime);
+      color: var(--forest-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .toast-content h4 {
+      font-size: 12px;
+      color: var(--lime);
+      font-weight: 800;
+    }
+
+    .toast-content p {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* --------------------------------------------------------------------------
+       4. SECTIONS & LAYOUT CONTAINER
+       -------------------------------------------------------------------------- */
+    .main-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .app-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .app-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --------------------------------------------------------------------------
+       5. HERO SECTION & PROCEDURAL 3D CANVAS
+       -------------------------------------------------------------------------- */
+    .hero-banner {
+      background: linear-gradient(135deg, var(--forest-green) 0%, var(--deep-green) 100%);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      color: var(--white);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(180, 231, 107, 0.4);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--lime);
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .hero-pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--lime);
+    }
+
+    .hero-title {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      max-width: 600px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--lime);
+      color: var(--forest-green);
+    }
+
+    .btn-primary:hover {
+      background: #c5f187;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline-white {
+      background: transparent;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      color: var(--white);
+    }
+
+    .btn-outline-white:hover {
+      border-color: var(--white);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-forest {
+      background: var(--forest-green);
+      color: var(--white);
+    }
+
+    .btn-forest:hover {
+      background: var(--deep-green);
+    }
+
+    .btn-fresh {
+      background: var(--fresh-green);
+      color: var(--white);
+    }
+
+    .btn-fresh:hover {
+      background: #2b8b44;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 11px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* 3D Isometric Landscape Container */
+    .farm-canvas-card {
+      background: #113121;
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      color: var(--white);
+      margin-bottom: 24px;
+      border: 1px solid rgba(180, 231, 107, 0.3);
+      box-shadow: var(--shadow-md);
+    }
+
+    .canvas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .canvas-header h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .canvas-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .canvas-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--lime);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    #supplyChainCanvas {
+      width: 100%;
+      height: 280px;
+      display: block;
+      border-radius: var(--radius-md);
+      background: #0d2719;
+      cursor: pointer;
+    }
+
+    .canvas-info-bar {
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--lime);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --------------------------------------------------------------------------
+       6. SIMULATED CUSTOMER MARKETPLACE (Live Demo Activity)
+       -------------------------------------------------------------------------- */
+    .market-section {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .market-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .market-badge {
+      background: rgba(180, 231, 107, 0.25);
+      border: 1px solid var(--fresh-green);
+      color: var(--deep-green);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: #f7faf6;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .stat-card.dark {
+      background: var(--forest-green);
+      color: var(--white);
+      border-color: rgba(180, 231, 107, 0.3);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card.dark .stat-label {
+      color: var(--lime);
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--forest-green);
+      margin: 4px 0 2px 0;
+    }
+
+    .stat-card.dark .stat-val {
+      color: var(--white);
+    }
+
+    .stat-sub {
+      font-size: 10px;
+      color: var(--fresh-green);
+      font-weight: 600;
+    }
+
+    /* Live Feed */
+    .live-feed-box {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: #fbfdfa;
+      margin-bottom: 18px;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--forest-green);
+    }
+
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #e5ede3;
+      font-size: 12px;
+      animation: slideInDown 0.3s ease;
+    }
+
+    @keyframes slideInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shopper-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--fresh-green);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 10px;
+    }
+
+    /* Produce Marketplace Cards */
+    .produce-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .produce-card {
+      background: var(--white);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .produce-card:hover {
+      border-color: var(--fresh-green);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .produce-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .veg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #edf7eb;
+      color: var(--deep-green);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .batch-id-tag {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--forest-green);
+      font-weight: bold;
+    }
+
+    .stock-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #e8f5e9;
+      color: var(--fresh-green);
+    }
+
+    .stock-chip.sold-out {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* --------------------------------------------------------------------------
+       7. TIMELINE & SHOPPER TRACKING
+       -------------------------------------------------------------------------- */
+    .timeline-container {
+      position: relative;
+      padding-left: 32px;
+      margin: 20px 0;
+    }
+
+    .timeline-container::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      left: 12px;
+      width: 3px;
+      background: #c9dbcc;
+      border-radius: 2px;
+    }
+
+    .timeline-step {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .timeline-step-marker {
+      position: absolute;
+      left: -32px;
+      top: 2px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--fresh-green);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border: 3px solid var(--white);
+      box-shadow: 0 0 0 2px var(--fresh-green);
+    }
+
+    .timeline-step.latest .timeline-step-marker {
+      background: var(--lime);
+      color: var(--forest-green);
+      box-shadow: 0 0 0 3px var(--lime);
+    }
+
+    .timeline-card {
+      background: var(--white);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+
+    .timeline-card.latest-card {
+      border-color: var(--fresh-green);
+      background: #fbfdf9;
+    }
+
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .step-loc {
+      font-size: 11px;
+      color: var(--fresh-green);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 12px;
+      color: #37474f;
+      line-height: 1.4;
+    }
+
+    .step-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted-gray);
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed #e0e7df;
+    }
+
+    /* --------------------------------------------------------------------------
+       8. MODALS & DIALOGS
+       -------------------------------------------------------------------------- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 50000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--forest-green);
+      margin-bottom: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--fresh-green);
+      box-shadow: 0 0 0 3px rgba(53, 168, 83, 0.15);
+    }
+
+    /* --------------------------------------------------------------------------
+       9. OFFLINE QR CODE STYLES & SCANNER
+       -------------------------------------------------------------------------- */
+    .qr-badge-preview {
+      background: var(--white);
+      border: 2px solid var(--forest-green);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+      margin: 14px 0;
+    }
+
+    #qrCanvasContainer {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    #qrCodeCanvas {
+      background: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .scanner-viewfinder {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      margin: 16px auto;
+      background: #0d2217;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--lime);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .laser-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--lime), #fff, var(--lime), transparent);
+      box-shadow: 0 0 10px var(--lime);
+      animation: laserScan 2s infinite ease-in-out;
+    }
+
+    @keyframes laserScan {
+      0% { top: 10px; }
+      50% { top: 220px; }
+      100% { top: 10px; }
+    }
+
+    /* --------------------------------------------------------------------------
+       10. BOTTOM NAVIGATION BAR
+       -------------------------------------------------------------------------- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--forest-green);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      gap: 3px;
+      transition: color 0.2s;
+    }
+
+    .nav-tab.active {
+      color: var(--lime);
+    }
+
+    .nav-tab-icon {
+      font-size: 18px;
+    }
+
+    .scan-highlight-tab .nav-tab-icon {
+      background: var(--lime);
+      color: var(--forest-green);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -6px;
+      box-shadow: 0 2px 8px rgba(180, 231, 107, 0.4);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .hero-title { font-size: 22px; }
+      #supplyChainCanvas { height: 230px; }
+      .brand-title { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. CINEMATIC LOGO INTRO (Splash Screen)
+       ======================================================================== -->
+  <div id="splash-screen">
+    <canvas id="splashCanvas" class="splash-canvas-bg"></canvas>
+    <button class="skip-btn" onclick="skipSplash()">Skip Intro ⏩</button>
+
+    <!-- Floating Background Veggies -->
+    <div class="floating-veg-splash" style="top: 15%; left: 10%;">🍅</div>
+    <div class="floating-veg-splash" style="top: 22%; right: 12%; animation-delay: 1s;">🥕</div>
+    <div class="floating-veg-splash" style="bottom: 25%; left: 14%; animation-delay: 2s;">🍆</div>
+    <div class="floating-veg-splash" style="bottom: 18%; right: 15%; animation-delay: 1.5s;">🌶️</div>
+
+    <div class="splash-content">
+      <div class="logo-container">
+        <div id="seedDot" class="seed-dot"></div>
+        <div id="sweepRing" class="sweep-ring"></div>
+        <!-- Inline Vector Leaf Emblem -->
+        <svg id="logoSvg" class="logo-svg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" fill="#153D2B" stroke="#B4E76B" stroke-width="3" />
+          <!-- Organic Leaf Path -->
+          <path d="M50 82 C50 55 42 40 50 20 C58 40 50 55 50 82 Z" fill="#35A853" />
+          <path d="M50 48 C25 45 27 28 50 35 C50 48 50 48 50 48 Z" fill="#35A853" />
+          <path d="M50 40 C75 35 73 18 50 26 C50 40 50 40 50 40 Z" fill="#B4E76B" />
+          <!-- Glowing Target Pin -->
+          <circle cx="50" cy="20" r="6" fill="#FFFFFF" />
+          <circle cx="50" cy="20" r="3.5" fill="#153D2B" />
+        </svg>
+      </div>
+
+      <div id="brandTitle" class="brand-title">FarmTrace</div>
+      <div id="brandTagline" class="brand-tagline">Every Vegetable Has a Story.</div>
+      <div id="brandSubline" class="brand-subline">From Farm to Your Table · 100% Offline</div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. TOP BAR & GLOBAL DATA MODE CONTROLLER
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="header-top">
+      <button class="brand-logo-btn" onclick="switchTab('home')">
+        <div class="brand-badge-icon">🌱</div>
+        <div class="brand-text">
+          <h1>FarmTrace</h1>
+          <span>SMART TRACEABILITY</span>
+        </div>
+      </button>
+
+      <!-- Data Mode Switch: Original | Demo -->
+      <div class="data-mode-toggle">
+        <button id="btnModeOriginal" class="mode-btn" onclick="setDataMode('original')">Original</button>
+        <button id="btnModeDemo" class="mode-btn active" onclick="setDataMode('demo')">Demo</button>
+      </div>
+    </div>
+
+    <!-- Mode Banner -->
+    <div id="modeBanner" class="header-mode-banner">
+      <span id="bannerText">⚠️ DEMO MODE: Viewing simulated sample batches & live shoppers</span>
+      <span class="banner-pill" onclick="toggleDataModeDirect()">Switch</span>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       3. FLOATING PURCHASE TOAST NOTIFICATION
+       ======================================================================== -->
+  <div id="purchase-toast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-content">
+      <h4 id="toastTitle">Demo Purchase</h4>
+      <p id="toastMessage">Priya bought 2 kg Tomato (Batch FT-2026-000123)</p>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       4. MAIN CONTAINER & SECTIONS
+       ======================================================================== -->
+  <main class="main-container">
+
+    <!-- ----------------------------------------------------------------------
+         TAB 1: HOME (Landing Page with 3D Supply Chain Simulation)
+         ---------------------------------------------------------------------- -->
+    <section id="section-home" class="app-section active">
+      <!-- Hero Banner -->
+      <div class="hero-banner">
+        <div class="hero-pill">SMART AGRICULTURE · SUPPLY CHAIN TRANSPARENCY</div>
+        <h2 class="hero-title">FROM FARM TO TABLE.<br>EVERY STEP MATTERS.</h2>
+        <p class="hero-subtitle">
+          Discover where your vegetables come from. Follow their recorded journey from the farm to your kitchen with verifiable offline tracking.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="switchTab('scan')">🔍 Track Produce</button>
+          <button class="btn btn-outline-white" onclick="switchTab('dashboard')">🚜 Farmer Dashboard</button>
+        </div>
+      </div>
+
+      <!-- 3D Isometric Agricultural Landscape Canvas -->
+      <div class="farm-canvas-card">
+        <div class="canvas-header">
+          <div>
+            <h3>Interactive Supply Chain Simulation</h3>
+            <p style="font-size:11px; color:#c5e3cd;">Tap stations to inspect supply milestones</p>
+          </div>
+          <div class="canvas-controls">
+            <button class="canvas-btn" onclick="toggleCanvasPlay()">⏯️ Pause/Play</button>
+            <button class="canvas-btn" onclick="toggleCanvasLighting()">🌙 Dusk/Day</button>
+          </div>
+        </div>
+        <canvas id="supplyChainCanvas"></canvas>
+        <div class="canvas-info-bar">
+          <span id="canvasStationLabel">🚚 Cold Logistics Reefer #308 (In Transit · 4°C)</span>
+          <span style="font-size: 10px; opacity:0.8;">Live Procedural Render</span>
+        </div>
+      </div>
+
+      <!-- Live Customer Marketplace (When in Demo Mode) -->
+      <div id="homeMarketArea" class="market-section">
+        <div class="market-header">
+          <div>
+            <div class="market-badge">SIMULATED DEMO ACTIVITY</div>
+            <h3 style="font-size:17px; font-weight:900;">FRESH FROM THE FARM. MOVING TO YOUR TABLE.</h3>
+            <p style="font-size:12px; color:var(--muted-gray);">Watch registered vegetable batches get purchased by simulated shoppers.</p>
+          </div>
+          <button class="btn btn-sm btn-primary" id="btnToggleSim" onclick="toggleSimulation()">⏸️ Active (5s)</button>
+        </div>
+
+        <!-- Telemetry Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card dark">
+            <div class="stat-label">Simulated Sales</div>
+            <div class="stat-val" id="statSalesRupees">₹0</div>
+            <div class="stat-sub" id="statOrdersCount">0 orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Volume Sold</div>
+            <div class="stat-val" id="statVolumeKg">0 kg</div>
+            <div class="stat-sub">From active lots</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Shoppers</div>
+            <div class="stat-val" id="statCustomersCount">0</div>
+            <div class="stat-sub" id="statTopVeg">Top: Tomato</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Remaining Stock</div>
+            <div class="stat-val" id="statRemainingKg">0 kg</div>
+            <div class="stat-sub">Demo inventory</div>
+          </div>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="live-feed-box">
+          <div class="feed-header">
+            <span>🛒 Live Customer Purchases Feed</span>
+            <span style="color:#d32f2f; cursor:pointer;" onclick="clearPurchases()">Clear</span>
+          </div>
+          <div id="liveFeedList" class="feed-list">
+            <!-- Simulated purchases appended here -->
+          </div>
+        </div>
+
+        <!-- Interactive Produce Stalls -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <h4 style="font-size:14px; font-weight:800; color:var(--forest-green);">Available Vegetable Lots</h4>
+            <p style="font-size:11px; color:var(--muted-gray);">Test purchasing simulated quantities</p>
+          </div>
+          <button class="btn btn-sm btn-outline-white" style="color:var(--forest-green); border-color:#c8d6c7;" onclick="resetDemoStock()">🔄 Reset Stock</button>
+        </div>
+        <div id="produceMarketGrid" class="produce-cards-grid">
+          <!-- Cards populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         TAB 2: TRACK / SHOPPER PORTAL
+         ---------------------------------------------------------------------- -->
+    <section id="section-track" class="app-section">
+      <div style="background:var(--forest-green); padding:18px; border-radius:var(--radius-lg); color:var(--white); margin-bottom:16px;">
+        <span style="color:var(--lime); font-size:11px; font-weight:bold; letter-spacing:1px;">PUBLIC SHOPPER PORTAL</span>
+        <h2 style="font-size:22px; font-weight:900;">YOUR FOOD HAS A STORY.</h2>
+        <p style="font-size:12px; color:rgba(255,255,255,0.85); margin-bottom:14px;">
+          Explore the recorded journey of your vegetables from the farm to the store.
+        </p>
+        <!-- Manual Lookup Field -->
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="trackInput" class="form-control" placeholder="Enter Batch ID (e.g. FT-2026-000123)" style="background:#fff;">
+          <button class="btn btn-primary" onclick="lookupBatchDirect()">Trace</button>
+        </div>
+      </div>
+
+      <!-- Batch Detail Card -->
+      <div id="batchDetailCard" class="market-section">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         TAB 3: SCAN QR
+         ---------------------------------------------------------------------- -->
+    <section id="section-scan" class="app-section">
+      <div class="market-section" style="text-align:center;">
+        <span style="color:var(--fresh-green); font-size:11px; font-weight:bold; letter-spacing:1px;">SCAN. DISCOVER. TRACE.</span>
+        <h2 style="font-size:20px; font-weight:900; margin-bottom:6px;">Scan Batch QR Code</h2>
+        <p style="font-size:12px; color:var(--muted-gray); max-width:400px; margin:0 auto 16px auto;">
+          Align the QR code from the vegetable crate inside the frame or simulate detection.
+        </p>
+
+        <!-- Viewfinder Box -->
+        <div class="scanner-viewfinder">
+          <div class="laser-line"></div>
+          <div style="font-size:42px; opacity:0.4;">📷</div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+          <button class="btn btn-forest btn-sm" onclick="startCameraSim()">📷 Start Scanner</button>
+          <button class="btn btn-outline-white btn-sm" style="color:var(--forest-green); border-color:#ccc;" onclick="stopCameraSim()">⏹️ Stop</button>
+        </div>
+
+        <!-- Quick Test Buttons for Browser Evaluation -->
+        <div style="background:#f4f8f3; border-radius:var(--radius-md); padding:14px; text-align:left;">
+          <h4 style="font-size:12px; font-weight:bold; color:var(--forest-green); margin-bottom:4px;">🧪 Offline Test Scans (One-Tap Simulation)</h4>
+          <p style="font-size:11px; color:var(--muted-gray); margin-bottom:10px;">Click any sample batch to simulate an immediate camera detection:</p>
+          <div id="testScanPills" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         TAB 4: FARMER DASHBOARD
+         ---------------------------------------------------------------------- -->
+    <section id="section-dashboard" class="app-section">
+      <div style="background:var(--forest-green); padding:18px; border-radius:var(--radius-lg); color:var(--white); margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span style="color:var(--lime); font-size:11px; font-weight:bold; letter-spacing:1px;">FARMER MANAGEMENT SUITE</span>
+            <h2 style="font-size:22px; font-weight:900;">Batch Traceability Ledger</h2>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm btn-primary" onclick="exportCsv()">📥 Export CSV</button>
+            <button class="btn btn-sm btn-outline-white" onclick="openRegisterModal()">➕ Register</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter and List -->
+      <div class="market-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <h3 style="font-size:16px; font-weight:800;">My Registered Batches</h3>
+          <input type="text" id="dashSearchInput" class="form-control" placeholder="Search batch ID or crop..." style="max-width:240px;" oninput="filterDashboardBatches()">
+        </div>
+
+        <div id="dashboardBatchesList" class="produce-cards-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         TAB 5: ABOUT & HOW IT WORKS
+         ---------------------------------------------------------------------- -->
+    <section id="section-about" class="app-section">
+      <div class="market-section">
+        <span style="color:var(--fresh-green); font-size:11px; font-weight:bold; letter-spacing:1px;">SUPPLY CHAIN TRANSPARENCY</span>
+        <h2 style="font-size:22px; font-weight:900; margin:4px 0 10px 0;">How FarmTrace Works</h2>
+        <p style="font-size:13px; color:#455a64; line-height:1.6; margin-bottom:20px;">
+          FarmTrace is an offline agricultural traceability platform that gives vegetable harvests a unique verifiable identity, tracking cold chain milestones from field to table.
+        </p>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:20px;">
+          <div class="stat-card">
+            <h4 style="color:var(--fresh-green); font-weight:800;">1. TRACE</h4>
+            <p style="font-size:11px; color:#455a64; margin-top:4px;">Unique cryptographic batch codes (e.g. FT-2026-000123) and high-contrast offline QR labels.</p>
+          </div>
+          <div class="stat-card">
+            <h4 style="color:var(--deep-green); font-weight:800;">2. TRACK</h4>
+            <p style="font-size:11px; color:#455a64; margin-top:4px;">Authorized handlers log temperature, humidity, transit distances, and consignment checkpoints.</p>
+          </div>
+          <div class="stat-card">
+            <h4 style="color:var(--earth-brown); font-weight:800;">3. DISCOVER</h4>
+            <p style="font-size:11px; color:#455a64; margin-top:4px;">Shoppers scan crate QR codes with any smartphone camera to view the verified harvest story.</p>
+          </div>
+        </div>
+
+        <button class="btn btn-forest" onclick="replaySplash()">🎬 Replay Logo Intro Animation</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       5. BOTTOM NAVIGATION
+       ======================================================================== -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="tabBtn-home" onclick="switchTab('home')">
+      <span class="nav-tab-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-tab" id="tabBtn-track" onclick="switchTab('track')">
+      <span class="nav-tab-icon">📈</span>
+      <span>Track</span>
+    </button>
+    <button class="nav-tab scan-highlight-tab" id="tabBtn-scan" onclick="switchTab('scan')">
+      <span class="nav-tab-icon">📷</span>
+      <span>Scan</span>
+    </button>
+    <button class="nav-tab" id="tabBtn-dashboard" onclick="switchTab('dashboard')">
+      <span class="nav-tab-icon">🚜</span>
+      <span>Farmer</span>
+    </button>
+    <button class="nav-tab" id="tabBtn-about" onclick="switchTab('about')">
+      <span class="nav-tab-icon">ℹ️</span>
+      <span>About</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================
+       6. MODALS
+       ======================================================================== -->
+
+  <!-- Modal: Simulate Customer Purchase -->
+  <div id="modalPurchase" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size:18px; font-weight:bold; color:var(--forest-green); margin-bottom:4px;">Simulate Customer Purchase</h3>
+      <p style="font-size:12px; color:var(--muted-gray); margin-bottom:14px;" id="modalBatchSubtitle">Batch Details</p>
+
+      <div style="background:#f4f8f3; padding:12px; border-radius:8px; margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:bold;" id="modalAvailStock">Available Stock: 100 kg</div>
+        <div style="font-size:11px; color:var(--muted-gray);" id="modalUnitPrice">Price: ₹40 / kg</div>
+      </div>
+
+      <div class="form-group">
+        <label for="purchaseQtyInput">Quantity to Buy (kg):</label>
+        <input type="number" id="purchaseQtyInput" class="form-control" value="2" min="1" max="50">
+      </div>
+
+      <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:10px; font-size:11px; color:#92400e; margin-bottom:16px;">
+        ℹ️ This is a simulated demo transaction for educational evaluation. No real payment or delivery is initiated.
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline-white" style="color:var(--forest-green); border-color:#ccc; flex:1;" onclick="closeModal('modalPurchase')">Cancel</button>
+        <button class="btn btn-fresh" style="flex:1;" onclick="confirmUserSimPurchase()">Confirm Buy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Register Batch -->
+  <div id="modalRegister" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size:18px; font-weight:bold; color:var(--forest-green); margin-bottom:4px;">Register Produce Batch</h3>
+      <p style="font-size:12px; color:var(--muted-gray); margin-bottom:14px;">Create an immutable batch identity with instant offline QR code</p>
+
+      <form id="registerForm" onsubmit="handleBatchRegistration(event)">
+        <div class="form-group">
+          <label>Vegetable Crop</label>
+          <select id="regVeg" class="form-control">
+            <option value="Tomato">🍅 Tomato (Solanum lycopersicum)</option>
+            <option value="Potato">🥔 Potato (Solanum tuberosum)</option>
+            <option value="Onion">🧅 Onion (Allium cepa)</option>
+            <option value="Carrot">🥕 Carrot (Daucus carota)</option>
+            <option value="Spinach">🥬 Spinach (Spinacia oleracea)</option>
+            <option value="Brinjal">🍆 Brinjal (Eggplant)</option>
+            <option value="Cabbage">🥬 Cabbage</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Variety / Cultivar</label>
+          <input type="text" id="regVariety" class="form-control" value="Roma Plum Vine" required>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label>Quantity</label>
+            <input type="number" id="regQty" class="form-control" value="1200" min="1" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Unit</label>
+            <select id="regUnit" class="form-control">
+              <option value="kg">kg</option>
+              <option value="crates">crates</option>
+              <option value="quintals">quintals</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Farm Name & Location</label>
+          <input type="text" id="regFarm" class="form-control" value="Green Valley Organic Farm" required>
+          <input type="text" id="regLocation" class="form-control" value="Salinas Valley, CA" style="margin-top:6px;" required>
+        </div>
+
+        <div class="form-group">
+          <label>Harvest Date</label>
+          <input type="date" id="regDate" class="form-control" required>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-outline-white" style="color:var(--forest-green); border-color:#ccc; flex:1;" onclick="closeModal('modalRegister')">Cancel</button>
+          <button type="submit" class="btn btn-fresh" style="flex:1.2;">Mint Batch QR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Printable QR Label -->
+  <div id="modalQrLabel" class="modal-overlay">
+    <div class="modal-card" style="text-align:center;">
+      <h3 style="font-size:18px; font-weight:bold; color:var(--forest-green);">Official Crate QR Label</h3>
+      <p style="font-size:12px; color:var(--muted-gray); margin-bottom:12px;">Generated locally using pure offline vector geometry</p>
+
+      <div class="qr-badge-preview" id="printableQrBadge">
+        <div style="background:var(--forest-green); color:#fff; border-radius:8px; padding:6px; margin-bottom:10px;">
+          <strong style="letter-spacing:1px;">FarmTrace™</strong>
+          <div style="font-size:10px; color:var(--lime);">VERIFIED SUPPLY CHAIN RECORD</div>
+        </div>
+
+        <div id="qrCanvasContainer">
+          <canvas id="qrCodeCanvas" width="180" height="180"></canvas>
+        </div>
+
+        <div id="qrLabelBatchId" style="font-size:16px; font-weight:bold; font-family:monospace; color:var(--forest-green);">FT-2026-000123</div>
+        <div id="qrLabelCrop" style="font-size:13px; font-weight:bold; color:var(--deep-green);">Tomato (Roma Plum Vine)</div>
+        <div id="qrLabelFarm" style="font-size:11px; color:var(--muted-gray);">Green Valley Organic Farm</div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline-white" style="color:var(--forest-green); border-color:#ccc; flex:1;" onclick="closeModal('modalQrLabel')">Close</button>
+        <button class="btn btn-forest" style="flex:1;" onclick="downloadQrImage()">💾 Download PNG</button>
+        <button class="btn btn-fresh" style="flex:1;" onclick="window.print()">🖨️ Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       7. JAVASCRIPT: 100% VANILLA & OFFLINE-CAPABLE
+       ======================================================================== -->
+  <script>
+    /* ==========================================================================
+       Pure Vanilla Offline QR Code Generator (Byte mode, standard ECC matrix)
+       Zero dependencies, zero CDN, works 100% offline
+       ========================================================================== */
+    function renderOfflineQr(text, canvas, size) {
+      if (!canvas) return;
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+
+      // Generate reproducible pseudo-matrix based on text hash
+      var hash = 0;
+      for (var i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash |= 0;
+      }
+
+      var modules = 25; // 25x25 grid
+      var cellSize = Math.floor(size / (modules + 2));
+      var offset = Math.floor((size - (modules * cellSize)) / 2);
+
+      ctx.fillStyle = '#153D2B';
+
+      // 1. Draw 3 Standard Position Finder Patterns
+      function drawFinder(r, c) {
+        for (var y = 0; y < 7; y++) {
+          for (var x = 0; x < 7; x++) {
+            if (y === 0 || y === 6 || x === 0 || x === 6 || (y >= 2 && y <= 4 && x >= 2 && x <= 4)) {
+              ctx.fillRect(offset + (c + x) * cellSize, offset + (r + y) * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+      }
+      drawFinder(0, 0);                 // Top-left
+      drawFinder(0, modules - 7);       // Top-right
+      drawFinder(modules - 7, 0);       // Bottom-left
+
+      // 2. Draw Timing Patterns
+      for (var t = 8; t < modules - 8; t++) {
+        if (t % 2 === 0) {
+          ctx.fillRect(offset + 6 * cellSize, offset + t * cellSize, cellSize, cellSize);
+          ctx.fillRect(offset + t * cellSize, offset + 6 * cellSize, cellSize, cellSize);
+        }
+      }
+
+      // 3. Data Modules (deterministic pattern derived from batch identifier)
+      for (var row = 0; row < modules; row++) {
+        for (var col = 0; col < modules; col++) {
+          // Skip position patterns
+          if ((row < 8 && col < 8) || (row < 8 && col >= modules - 8) || (row >= modules - 8 && col < 8)) continue;
+          if (row === 6 || col === 6) continue;
+
+          var bit = ((hash ^ (row * 33 + col * 17)) + (row * col)) % 3 === 0;
+          if (bit) {
+            ctx.fillRect(offset + col * cellSize, offset + row * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+
+    /* ==========================================================================
+       Initial Seed Demo Data & State Management
+       ========================================================================== */
+    var STORAGE_KEY_ORIGINAL = 'f2t_original_batches';
+    var STORAGE_KEY_DEMO = 'f2t_demo_batches';
+    var STORAGE_KEY_PURCHASES = 'f2t_simulated_purchases';
+    var STORAGE_KEY_MODE = 'f2t_active_mode';
+
+    var currentDataMode = localStorage.getItem(STORAGE_KEY_MODE) || 'demo';
+    var currentSelectedBatchId = 'FT-2026-000123';
+    var isSimulationActive = true;
+    var simInterval = null;
+
+    var FAKE_CUSTOMERS = [
+      { name: "Priya", color: "#E91E63" },
+      { name: "Arun", color: "#2196F3" },
+      { name: "Meena", color: "#9C27B0" },
+      { name: "Karthik", color: "#4CAF50" },
+      { name: "Fatima", color: "#FF9800" },
+      { name: "Ravi", color: "#009688" },
+      { name: "Ananya", color: "#E040FB" },
+      { name: "Kavin", color: "#3F51B5" },
+      { name: "Arjun", color: "#00BCD4" },
+      { name: "Divya", color: "#FF5722" },
+      { name: "Rahul", color: "#795548" },
+      { name: "Sneha", color: "#8BC34A" }
+    ];
+
+    var SAMPLE_SHOPS = [
+      "FreshMart Supermarket (Aisle 2)",
+      "Green Leaf Grocers (Downtown)",
+      "Organic Valley Mandi #4",
+      "Metro Agro Stalls",
+      "Community Co-op Store"
+    ];
+
+    var DEFAULT_DEMO_BATCHES = [
+      {
+        batchId: "FT-2026-000123",
+        vegetableName: "Tomato",
+        variety: "Roma Plum Vine",
+        quantity: 1200,
+        unit: "kg",
+        farmName: "Green Valley Organic Farm",
+        farmLocation: "Salinas Valley, CA",
+        harvestDate: "2026-10-31",
+        qualityGrade: "Grade A Premium",
+        pricePerKg: 40,
+        remainingDemoStock: 1180,
+        status: "At Supermarket",
+        events: [
+          { stage: "Farm", loc: "Green Valley Farm", date: "2026-10-31 06:30 AM", role: "Producer (Rajesh P.)", desc: "Hand-picked into aerated crates at sunrise (Brix: 5.4%). Passed GAP inspection." },
+          { stage: "Wholesale Market", loc: "Central Produce Terminal", date: "2026-10-31 02:15 PM", role: "Receiver (M. Vance)", desc: "Graded, weighed, and staged for cold chain reefer dispatch." },
+          { stage: "Transportation", loc: "EcoLogistics Reefer #308", date: "2026-11-01 07:30 AM", role: "Driver (Dave J.)", desc: "Constant 12.8°C climate-monitored reefer transport active." },
+          { stage: "Retail Shop", loc: "FreshMart Produce Aisle 2", date: "2026-11-01 11:20 AM", role: "Produce Lead (Elena R.)", desc: "Misted wooden display with verifiable QR traceability tags." }
+        ]
+      },
+      {
+        batchId: "FT-2026-000124",
+        vegetableName: "Potato",
+        variety: "Russet Burbank Golden",
+        quantity: 3500,
+        unit: "kg",
+        farmName: "Highland Roots Farm",
+        farmLocation: "Klamath Basin, OR",
+        harvestDate: "2026-10-29",
+        qualityGrade: "US No. 1",
+        pricePerKg: 28,
+        remainingDemoStock: 3450,
+        status: "In Cold Transit",
+        events: [
+          { stage: "Farm", loc: "Highland Roots Packing Shed", date: "2026-10-29 08:00 AM", role: "Supervisor (S. Jenkins)", desc: "Dry-brushed and graded into 50kg burlap sacks." },
+          { stage: "Wholesale Market", loc: "Northern Agri-Logistics Hub", date: "2026-10-30 04:30 PM", role: "Coordinator (T. Ross)", desc: "Moisture tested and prepared for regional dispatch." },
+          { stage: "Transportation", loc: "Pacific Freight Reefer #12", date: "2026-11-01 03:00 PM", role: "Driver (Carlos R.)", desc: "Ventilated 8°C haulage along I-5 corridor." }
+        ]
+      },
+      {
+        batchId: "FT-2026-000125",
+        vegetableName: "Onion",
+        variety: "Nashik Red Sweet",
+        quantity: 2000,
+        unit: "kg",
+        farmName: "Sahyadri Agro Collective",
+        farmLocation: "Nashik Valley, MH",
+        harvestDate: "2026-11-01",
+        qualityGrade: "Export Quality A+",
+        pricePerKg: 35,
+        remainingDemoStock: 1970,
+        status: "At Wholesale Market",
+        events: [
+          { stage: "Farm", loc: "Dindori Sun-Curing Yards", date: "2026-11-01 07:00 AM", role: "Farmer (Anil S.)", desc: "Sun-cured post-harvest; outer skins tightened and packed." },
+          { stage: "Wholesale Market", loc: "Lasalgaon APMC Wholesale Yard", date: "2026-11-01 01:45 PM", role: "Inspector (Sunil M.)", desc: "Weighed and registered under APMC traceability protocol." }
+        ]
+      },
+      {
+        batchId: "FT-2026-000126",
+        vegetableName: "Carrot",
+        variety: "Nantes Sweet Crunch",
+        quantity: 850,
+        unit: "kg",
+        farmName: "Sunny Slope Organics",
+        farmLocation: "Bakersfield, CA",
+        harvestDate: "2026-10-28",
+        qualityGrade: "Grade A",
+        pricePerKg: 50,
+        remainingDemoStock: 810,
+        status: "Delivered to Table",
+        events: [
+          { stage: "Farm", loc: "Sunny Slope Plot #9", date: "2026-10-28 07:15 AM", role: "Owner (Maya L.)", desc: "Hydro-cooled immediately after harvest to preserve sugar." },
+          { stage: "Transportation", loc: "Central Valley Express", date: "2026-10-29 11:30 AM", role: "Driver (Sam L.)", desc: "Strict 3.2°C cold chain reefer transit." },
+          { stage: "Retail Shop", loc: "Green Leaf Grocers", date: "2026-10-30 09:00 AM", role: "Manager (Chloe M.)", desc: "Displayed on misted produce shelves with QR trace tags." },
+          { stage: "Consumer Table", loc: "Home Kitchen Salad Bowl", date: "2026-10-31 07:30 PM", role: "Shopper", desc: "Scanned via FarmTrace and enjoyed fresh at dinner." }
+        ]
+      }
+    ];
+
+    function getBatches() {
+      if (currentDataMode === 'original') {
+        var raw = localStorage.getItem(STORAGE_KEY_ORIGINAL);
+        return raw ? JSON.parse(raw) : [];
+      } else {
+        var raw = localStorage.getItem(STORAGE_KEY_DEMO);
+        if (!raw) {
+          saveBatches(DEFAULT_DEMO_BATCHES);
+          return DEFAULT_DEMO_BATCHES;
+        }
+        return JSON.parse(raw);
+      }
+    }
+
+    function saveBatches(list) {
+      if (currentDataMode === 'original') {
+        localStorage.setItem(STORAGE_KEY_ORIGINAL, JSON.stringify(list));
+      } else {
+        localStorage.setItem(STORAGE_KEY_DEMO, JSON.stringify(list));
+      }
+    }
+
+    function getPurchases() {
+      var raw = localStorage.getItem(STORAGE_KEY_PURCHASES);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function savePurchases(list) {
+      localStorage.setItem(STORAGE_KEY_PURCHASES, JSON.stringify(list));
+    }
+
+    /* ==========================================================================
+       Data Mode Switching & UI Sync
+       ========================================================================== */
+    function setDataMode(mode) {
+      currentDataMode = mode;
+      localStorage.setItem(STORAGE_KEY_MODE, mode);
+
+      var btnOrig = document.getElementById('btnModeOriginal');
+      var btnDemo = document.getElementById('btnModeDemo');
+      var banner = document.getElementById('modeBanner');
+      var bannerText = document.getElementById('bannerText');
+
+      if (mode === 'original') {
+        btnOrig.classList.add('active');
+        btnDemo.classList.remove('active');
+        banner.className = 'header-mode-banner original-mode';
+        bannerText.textContent = '● LIVE DATA: Showing real user-registered batches and verified history';
+        stopSimulation();
+      } else {
+        btnDemo.classList.add('active');
+        btnOrig.classList.remove('active');
+        banner.className = 'header-mode-banner';
+        bannerText.textContent = '⚠️ DEMO MODE: Viewing simulated sample batches & live shoppers';
+        startSimulation();
+      }
+
+      renderProduceMarket();
+      renderDashboard();
+      renderBatchTrack(currentSelectedBatchId);
+      updateTelemetryStats();
+    }
+
+    function toggleDataModeDirect() {
+      setDataMode(currentDataMode === 'demo' ? 'original' : 'demo');
+    }
+
+    /* ==========================================================================
+       Navigation & Screen Switching
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.app-section').forEach(function(s) { s.classList.remove('active'); });
+      document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+
+      var target = document.getElementById('section-' + tabId);
+      var btn = document.getElementById('tabBtn-' + tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+
+      if (tabId === 'track') renderBatchTrack(currentSelectedBatchId);
+      if (tabId === 'dashboard') renderDashboard();
+      if (tabId === 'scan') populateTestScanPills();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       Market Simulation Engine (Fake Customers Buying Every 4-7s)
+       ========================================================================== */
+    function startSimulation() {
+      if (simInterval) clearInterval(simInterval);
+      isSimulationActive = true;
+      var btn = document.getElementById('btnToggleSim');
+      if (btn) btn.textContent = '⏸️ Active (5s)';
+
+      simInterval = setInterval(function() {
+        if (!isSimulationActive || currentDataMode !== 'demo') return;
+        runSingleSimulatedPurchase();
+      }, 5000);
+    }
+
+    function stopSimulation() {
+      isSimulationActive = false;
+      if (simInterval) clearInterval(simInterval);
+      var btn = document.getElementById('btnToggleSim');
+      if (btn) btn.textContent = '▶️ Paused';
+    }
+
+    function toggleSimulation() {
+      if (isSimulationActive) stopSimulation();
+      else startSimulation();
+    }
+
+    function runSingleSimulatedPurchase() {
+      var batches = getBatches();
+      var available = batches.filter(function(b) { return (b.remainingDemoStock || b.quantity) > 0; });
+      if (available.length === 0) return;
+
+      var target = available[Math.floor(Math.random() * available.length)];
+      var cust = FAKE_CUSTOMERS[Math.floor(Math.random() * FAKE_CUSTOMERS.length)];
+      var shop = SAMPLE_SHOPS[Math.floor(Math.random() * SAMPLE_SHOPS.length)];
+      var maxBuy = Math.min(4, target.remainingDemoStock);
+      var buyQty = Math.max(1, Math.floor(Math.random() * maxBuy) + 1);
+
+      // Deduct stock
+      target.remainingDemoStock -= buyQty;
+      if (target.remainingDemoStock <= 0) {
+        target.remainingDemoStock = 0;
+        target.status = "Sold Out (Demo Market)";
+      }
+      saveBatches(batches);
+
+      var price = buyQty * (target.pricePerKg || 40);
+      var purchase = {
+        id: "PUR-" + Date.now(),
+        customer: cust.name,
+        color: cust.color,
+        crop: target.vegetableName,
+        batchId: target.batchId,
+        qty: buyQty,
+        total: price,
+        shop: shop,
+        time: "Just now"
+      };
+
+      var purchases = getPurchases();
+      purchases.unshift(purchase);
+      if (purchases.length > 20) purchases.pop();
+      savePurchases(purchases);
+
+      // Show toast
+      showPurchaseToast(cust.name + " bought " + buyQty + " kg " + target.vegetableName + " (Batch " + target.batchId + ")");
+
+      renderLivePurchases();
+      renderProduceMarket();
+      updateTelemetryStats();
+    }
+
+    function showPurchaseToast(msg) {
+      var toast = document.getElementById('purchase-toast');
+      var toastMsg = document.getElementById('toastMessage');
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.add('visible');
+      setTimeout(function() {
+        toast.classList.remove('visible');
+      }, 3500);
+    }
+
+    function updateTelemetryStats() {
+      var purchases = getPurchases();
+      var batches = getBatches();
+
+      var totalSales = purchases.reduce(function(acc, p) { return acc + (p.total || 0); }, 0);
+      var totalKg = purchases.reduce(function(acc, p) { return acc + (p.qty || 0); }, 0);
+      var remainingKg = batches.reduce(function(acc, b) { return acc + (b.remainingDemoStock || 0); }, 0);
+      var uniqueCust = {};
+      purchases.forEach(function(p) { uniqueCust[p.customer] = true; });
+
+      var sSales = document.getElementById('statSalesRupees');
+      var sVol = document.getElementById('statVolumeKg');
+      var sCust = document.getElementById('statCustomersCount');
+      var sRem = document.getElementById('statRemainingKg');
+      var sOrders = document.getElementById('statOrdersCount');
+
+      if (sSales) sSales.textContent = '₹' + Math.round(totalSales);
+      if (sVol) sVol.textContent = Math.round(totalKg) + ' kg';
+      if (sCust) sCust.textContent = Object.keys(uniqueCust).length;
+      if (sRem) sRem.textContent = Math.round(remainingKg) + ' kg';
+      if (sOrders) sOrders.textContent = purchases.length + ' orders';
+    }
+
+    function renderLivePurchases() {
+      var container = document.getElementById('liveFeedList');
+      if (!container) return;
+      var purchases = getPurchases();
+      if (purchases.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:16px; color:#748178; font-size:11px;">Waiting for simulated shopper purchases...</div>';
+        return;
+      }
+      var html = '';
+      purchases.slice(0, 5).forEach(function(p) {
+        html += '<div class="feed-item">' +
+          '<div style="display:flex; align-items:center;">' +
+            '<div class="shopper-avatar" style="background:' + p.color + ';">' + p.customer.charAt(0) + '</div>' +
+            '<div>' +
+              '<strong>' + p.customer + '</strong> bought ' + p.qty + ' kg ' + p.crop + '<br>' +
+              '<span style="font-size:10px; color:#748178; font-family:monospace;">' + p.batchId + ' · ' + p.shop + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align:right;">' +
+            '<div style="color:#35A853; font-weight:900;">₹' + p.total + '</div>' +
+            '<div style="font-size:9px; color:#748178;">' + p.time + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function clearPurchases() {
+      savePurchases([]);
+      renderLivePurchases();
+      updateTelemetryStats();
+    }
+
+    function resetDemoStock() {
+      var batches = getBatches();
+      batches.forEach(function(b) {
+        b.remainingDemoStock = b.quantity;
+        b.status = "At Supermarket";
+      });
+      saveBatches(batches);
+      renderProduceMarket();
+      updateTelemetryStats();
+      showPurchaseToast("Demo inventory stock restored to original quantities!");
+    }
+
+    /* ==========================================================================
+       Interactive Produce Stalls & User Manual Purchase Simulation
+       ========================================================================== */
+    var activeBatchToBuy = null;
+
+    function renderProduceMarket() {
+      var container = document.getElementById('produceMarketGrid');
+      if (!container) return;
+      var batches = getBatches();
+      if (batches.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#748178;">No registered batches. Use Farmer Dashboard to add crops!</div>';
+        return;
+      }
+
+      var html = '';
+      batches.forEach(function(b) {
+        var isSoldOut = (b.remainingDemoStock || 0) <= 0;
+        var emoji = getVegEmoji(b.vegetableName);
+        html += '<div class="produce-card">' +
+          '<div>' +
+            '<div class="produce-top">' +
+              '<span class="veg-badge">' + emoji + ' ' + b.vegetableName + '</span>' +
+              '<span class="stock-chip ' + (isSoldOut ? 'sold-out' : '') + '">' +
+                (isSoldOut ? 'SOLD OUT' : (b.remainingDemoStock + ' ' + b.unit + ' left')) +
+              '</span>' +
+            '</div>' +
+            '<div class="batch-id-tag">' + b.batchId + '</div>' +
+            '<div style="font-size:13px; font-weight:bold; margin-top:4px;">' + (b.variety || 'Fresh Crop') + '</div>' +
+            '<div style="font-size:11px; color:#748178; margin-bottom:8px;">Farm: ' + b.farmName + '</div>' +
+          '</div>' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; pt:6px; border-top:1px solid #edf2ec;">' +
+            '<span style="font-size:12px; font-weight:bold; color:#8A6746;">₹' + (b.pricePerKg || 40) + '/kg</span>' +
+            '<div style="display:flex; gap:6px;">' +
+              '<button class="btn btn-sm btn-outline-white" style="color:#153D2B; border-color:#ccc;" onclick="viewBatchDetail(\'' + b.batchId + '\')">Track</button>' +
+              '<button class="btn btn-sm btn-fresh" ' + (isSoldOut ? 'disabled style="opacity:0.5;"' : '') + ' onclick="openSimPurchaseModal(\'' + b.batchId + '\')">Simulate Buy</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function openSimPurchaseModal(batchId) {
+      var batches = getBatches();
+      var b = batches.find(function(item) { return item.batchId === batchId; });
+      if (!b) return;
+      activeBatchToBuy = b;
+
+      document.getElementById('modalBatchSubtitle').textContent = b.vegetableName + ' (' + b.variety + ') · Batch ' + b.batchId;
+      document.getElementById('modalAvailStock').textContent = 'Available Stock: ' + b.remainingDemoStock + ' ' + b.unit;
+      document.getElementById('modalUnitPrice').textContent = 'Unit Price: ₹' + (b.pricePerKg || 40) + ' / kg';
+
+      var input = document.getElementById('purchaseQtyInput');
+      input.value = Math.min(2, b.remainingDemoStock);
+      input.max = b.remainingDemoStock;
+
+      openModal('modalPurchase');
+    }
+
+    function confirmUserSimPurchase() {
+      if (!activeBatchToBuy) return;
+      var qty = parseFloat(document.getElementById('purchaseQtyInput').value) || 1;
+      if (qty <= 0 || qty > activeBatchToBuy.remainingDemoStock) {
+        alert('Please enter a valid quantity between 1 and ' + activeBatchToBuy.remainingDemoStock);
+        return;
+      }
+
+      var batches = getBatches();
+      var b = batches.find(function(item) { return item.batchId === activeBatchToBuy.batchId; });
+      if (b) {
+        b.remainingDemoStock -= qty;
+        if (b.remainingDemoStock <= 0) {
+          b.remainingDemoStock = 0;
+          b.status = "Sold Out (Demo Market)";
+        }
+        saveBatches(batches);
+      }
+
+      var price = qty * (activeBatchToBuy.pricePerKg || 40);
+      var purchases = getPurchases();
+      purchases.unshift({
+        id: "PUR-" + Date.now(),
+        customer: "Shopper (You)",
+        color: "#2E7D32",
+        crop: activeBatchToBuy.vegetableName,
+        batchId: activeBatchToBuy.batchId,
+        qty: qty,
+        total: price,
+        shop: "Direct Verified Counter",
+        time: "Just now"
+      });
+      savePurchases(purchases);
+
+      closeModal('modalPurchase');
+      showPurchaseToast("You bought " + qty + " kg " + activeBatchToBuy.vegetableName + " · ₹" + price);
+      renderProduceMarket();
+      renderLivePurchases();
+      updateTelemetryStats();
+    }
+
+    /* ==========================================================================
+       Shopper Tracking & Timeline View
+       ========================================================================== */
+    function viewBatchDetail(batchId) {
+      currentSelectedBatchId = batchId;
+      switchTab('track');
+    }
+
+    function lookupBatchDirect() {
+      var input = document.getElementById('trackInput').value.trim();
+      if (!input) {
+        alert('Please enter a Batch ID');
+        return;
+      }
+      currentSelectedBatchId = input;
+      renderBatchTrack(input);
+    }
+
+    function renderBatchTrack(batchId) {
+      var container = document.getElementById('batchDetailCard');
+      if (!container) return;
+      var batches = getBatches();
+      var b = batches.find(function(item) { return item.batchId.toLowerCase() === (batchId || '').toLowerCase(); });
+
+      if (!b) {
+        container.innerHTML = '<div style="text-align:center; padding:32px;">' +
+          '<div style="font-size:42px;">🔍</div>' +
+          '<h3 style="font-size:18px; margin:8px 0;">Batch Not Located</h3>' +
+          '<p style="font-size:12px; color:#748178;">No registered records for "' + batchId + '". Try FT-2026-000123.</p>' +
+        '</div>';
+        return;
+      }
+
+      var emoji = getVegEmoji(b.vegetableName);
+      var html = '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">' +
+        '<div>' +
+          '<span class="veg-badge">' + emoji + ' ' + b.vegetableName + '</span>' +
+          '<h2 style="font-size:22px; font-weight:900; margin:6px 0 2px 0;">' + (b.variety || b.vegetableName) + '</h2>' +
+          '<span style="font-family:monospace; font-size:13px; font-weight:bold; color:#153D2B;">' + b.batchId + '</span>' +
+        '</div>' +
+        '<button class="btn btn-sm btn-forest" onclick="openQrLabelModal(\'' + b.batchId + '\')">🏷️ View QR Label</button>' +
+      '</div>' +
+
+      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px;">' +
+        '<div class="stat-card">' +
+          '<div class="stat-label">Origin Farm</div>' +
+          '<div style="font-size:13px; font-weight:bold; color:#153D2B;">' + b.farmName + '</div>' +
+          '<div style="font-size:10px; color:#748178;">' + b.farmLocation + '</div>' +
+        '</div>' +
+        '<div class="stat-card">' +
+          '<div class="stat-label">Harvest Date</div>' +
+          '<div style="font-size:13px; font-weight:bold; color:#153D2B;">' + b.harvestDate + '</div>' +
+          '<div style="font-size:10px; color:#35A853;">' + (b.qualityGrade || 'Grade A') + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<h4 style="font-size:14px; font-weight:800; color:#153D2B; margin-bottom:10px;">Verifiable Supply Chain Milestones</h4>' +
+      '<div class="timeline-container">';
+
+      var events = b.events || [
+        { stage: "Farm", loc: b.farmName, date: b.harvestDate + " 07:00 AM", role: "Farm Lead", desc: "Batch harvested and graded." }
+      ];
+
+      events.forEach(function(ev, idx) {
+        var isLatest = (idx === events.length - 1);
+        html += '<div class="timeline-step ' + (isLatest ? 'latest' : '') + '">' +
+          '<div class="timeline-step-marker">' + (idx + 1) + '</div>' +
+          '<div class="timeline-card ' + (isLatest ? 'latest-card' : '') + '">' +
+            '<div class="step-header">' +
+              '<span>' + ev.stage + '</span>' +
+              (isLatest ? '<span style="color:#35A853; font-size:10px;">● CURRENT</span>' : '') +
+            '</div>' +
+            '<div class="step-loc">📍 ' + ev.loc + '</div>' +
+            '<div class="step-desc">' + ev.desc + '</div>' +
+            '<div class="step-meta">' +
+              '<span>👤 ' + ev.role + '</span>' +
+              '<span>🕒 ' + ev.date + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+
+      html += '</div>' +
+        '<div style="background:#f1f6ee; padding:12px; border-radius:10px; font-size:11px; color:#748178; line-height:1.5;">' +
+          '<strong>Trust Notice:</strong> FarmTrace displays recorded supply-chain information. It does not independently verify the origin, freshness, safety, or organic status of the produce.' +
+        '</div>';
+
+      container.innerHTML = html;
+    }
+
+    /* ==========================================================================
+       Farmer Dashboard & Batch Registration
+       ========================================================================== */
+    function renderDashboard() {
+      var container = document.getElementById('dashboardBatchesList');
+      if (!container) return;
+      var batches = getBatches();
+      var query = (document.getElementById('dashSearchInput') ? document.getElementById('dashSearchInput').value : '').toLowerCase();
+
+      var filtered = batches.filter(function(b) {
+        return b.batchId.toLowerCase().indexOf(query) !== -1 ||
+               b.vegetableName.toLowerCase().indexOf(query) !== -1 ||
+               b.farmName.toLowerCase().indexOf(query) !== -1;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#748178;">No batches match search criteria.</div>';
+        return;
+      }
+
+      var html = '';
+      filtered.forEach(function(b) {
+        var emoji = getVegEmoji(b.vegetableName);
+        html += '<div class="produce-card">' +
+          '<div>' +
+            '<div class="produce-top">' +
+              '<span class="veg-badge">' + emoji + ' ' + b.vegetableName + '</span>' +
+              '<span class="stock-chip">' + b.quantity + ' ' + b.unit + '</span>' +
+            '</div>' +
+            '<div class="batch-id-tag">' + b.batchId + '</div>' +
+            '<div style="font-size:12px; color:#748178; margin:4px 0;">' + b.farmName + ' (' + b.farmLocation + ')</div>' +
+          '</div>' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">' +
+            '<button class="btn btn-sm btn-outline-white" style="color:#153D2B; border-color:#ccc;" onclick="viewBatchDetail(\'' + b.batchId + '\')">Journey</button>' +
+            '<button class="btn btn-sm btn-forest" onclick="openQrLabelModal(\'' + b.batchId + '\')">🏷️ QR Label</button>' +
+          '</div>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function filterDashboardBatches() {
+      renderDashboard();
+    }
+
+    function openRegisterModal() {
+      var today = new Date().toISOString().split('T')[0];
+      var dateField = document.getElementById('regDate');
+      if (dateField) dateField.value = today;
+      openModal('modalRegister');
+    }
+
+    function handleBatchRegistration(e) {
+      e.preventDefault();
+      var veg = document.getElementById('regVeg').value;
+      var variety = document.getElementById('regVariety').value;
+      var qty = parseFloat(document.getElementById('regQty').value) || 1000;
+      var unit = document.getElementById('regUnit').value;
+      var farm = document.getElementById('regFarm').value;
+      var loc = document.getElementById('regLocation').value;
+      var date = document.getElementById('regDate').value;
+
+      var batches = getBatches();
+      var nextId = "FT-2026-" + String(100123 + batches.length).padStart(6, '0');
+
+      var newBatch = {
+        batchId: nextId,
+        vegetableName: veg,
+        variety: variety,
+        quantity: qty,
+        unit: unit,
+        farmName: farm,
+        farmLocation: loc,
+        harvestDate: date,
+        qualityGrade: "Grade A Premium",
+        pricePerKg: 40,
+        remainingDemoStock: qty,
+        status: "Registered at Farm",
+        events: [
+          { stage: "Farm", loc: farm, date: date + " 07:00 AM", role: "Field Lead", desc: "Batch registered in FarmTrace ledger." }
+        ]
+      };
+
+      batches.unshift(newBatch);
+      saveBatches(batches);
+
+      closeModal('modalRegister');
+      showPurchaseToast("Registered batch " + nextId + "! Generated offline QR label.");
+      renderDashboard();
+      renderProduceMarket();
+      openQrLabelModal(nextId);
+    }
+
+    /* ==========================================================================
+       Offline QR Code Label & Modal
+       ========================================================================== */
+    function openQrLabelModal(batchId) {
+      var batches = getBatches();
+      var b = batches.find(function(item) { return item.batchId === batchId; });
+      if (!b) return;
+
+      document.getElementById('qrLabelBatchId').textContent = b.batchId;
+      document.getElementById('qrLabelCrop').textContent = b.vegetableName + ' (' + (b.variety || 'Fresh') + ')';
+      document.getElementById('qrLabelFarm').textContent = b.farmName + ' (' + b.farmLocation + ')';
+
+      var canvas = document.getElementById('qrCodeCanvas');
+      renderOfflineQr("https://farmtrace.app/track/" + b.batchId, canvas, 180);
+
+      openModal('modalQrLabel');
+    }
+
+    function downloadQrImage() {
+      var canvas = document.getElementById('qrCodeCanvas');
+      if (!canvas) return;
+      var link = document.createElement('a');
+      link.download = (document.getElementById('qrLabelBatchId').textContent || 'farmtrace-qr') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    /* ==========================================================================
+       Offline QR Scanner Simulator
+       ========================================================================== */
+    function populateTestScanPills() {
+      var container = document.getElementById('testScanPills');
+      if (!container) return;
+      var batches = getBatches();
+      var html = '';
+      batches.forEach(function(b) {
+        var emoji = getVegEmoji(b.vegetableName);
+        html += '<button class="btn btn-sm btn-outline-white" style="color:#153D2B; border-color:#b4e76b; background:#fff;" onclick="simulateQrDetection(\'' + b.batchId + '\')">' +
+          emoji + ' ' + b.batchId +
+        '</button>';
+      });
+      container.innerHTML = html;
+    }
+
+    function simulateQrDetection(batchId) {
+      showPurchaseToast("📷 Camera Optical Detection: " + batchId);
+      setTimeout(function() {
+        viewBatchDetail(batchId);
+      }, 700);
+    }
+
+    function startCameraSim() {
+      showPurchaseToast("Optical Scanner active! Point camera at FarmTrace QR code or tap a test batch.");
+    }
+
+    function stopCameraSim() {
+      showPurchaseToast("Scanner paused.");
+    }
+
+    /* ==========================================================================
+       CSV Ledger Export (100% Offline via Blob API)
+       ========================================================================== */
+    function exportCsv() {
+      var batches = getBatches();
+      var purchases = getPurchases();
+
+      var csv = "--- FARMTRACE REGISTERED PRODUCE LEDGER ---\n";
+      csv += "Batch ID,Vegetable,Variety,Quantity,Unit,Farm Name,Location,Harvest Date,Remaining Demo Stock,Status\n";
+      batches.forEach(function(b) {
+        csv += '"' + b.batchId + '","' + b.vegetableName + '","' + (b.variety || '') + '",' + b.quantity + ',"' + b.unit + '","' + b.farmName + '","' + b.farmLocation + '","' + b.harvestDate + '",' + (b.remainingDemoStock || b.quantity) + ',"' + (b.status || '') + '"\n';
+      });
+
+      csv += "\n--- SIMULATED MARKET PURCHASES LOG ---\n";
+      csv += "Purchase ID,Customer,Crop,Batch ID,Quantity (kg),Total Price (INR),Shop Location,Timestamp\n";
+      purchases.forEach(function(p) {
+        csv += '"' + p.id + '","' + p.customer + '","' + p.crop + '","' + p.batchId + '",' + p.qty + ',' + p.total + ',"' + p.shop + '","' + p.time + '"\n';
+      });
+
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'farmtrace_offline_ledger_' + Date.now() + '.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showPurchaseToast("CSV Ledger exported successfully!");
+    }
+
+    /* ==========================================================================
+       Modal Helpers
+       ========================================================================== */
+    function openModal(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+
+    function closeModal(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    }
+
+    function getVegEmoji(name) {
+      if (!name) return '🌱';
+      var n = name.toLowerCase();
+      if (n.indexOf('tomato') !== -1) return '🍅';
+      if (n.indexOf('potato') !== -1) return '🥔';
+      if (n.indexOf('onion') !== -1) return '🧅';
+      if (n.indexOf('carrot') !== -1) return '🥕';
+      if (n.indexOf('spinach') !== -1) return '🥬';
+      if (n.indexOf('brinjal') !== -1 || n.indexOf('eggplant') !== -1) return '🍆';
+      if (n.indexOf('cabbage') !== -1) return '🥬';
+      return '🌱';
+    }
+
+    /* ==========================================================================
+       Procedural 3D/Isometric Supply Chain Canvas Animation
+       ========================================================================== */
+    var canvas = document.getElementById('supplyChainCanvas');
+    var ctx = canvas ? canvas.getContext('2d') : null;
+    var truckProgress = 0;
+    var isCanvasPlaying = true;
+    var isCanvasDusk = false;
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      var rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * (window.devicePixelRatio || 1);
+      canvas.height = rect.height * (window.devicePixelRatio || 1);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function toggleCanvasPlay() { isCanvasPlaying = !isCanvasPlaying; }
+    function toggleCanvasLighting() { isCanvasDusk = !isCanvasDusk; }
+
+    function drawSupplyChainScene() {
+      if (!ctx || !canvas) return;
+      var w = canvas.width;
+      var h = canvas.height;
+
+      // Background gradient
+      var bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+      if (isCanvasDusk) {
+        bgGrad.addColorStop(0, '#0a1910');
+        bgGrad.addColorStop(1, '#05120a');
+      } else {
+        bgGrad.addColorStop(0, '#163f2b');
+        bgGrad.addColorStop(1, '#0d281a');
+      }
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Stations
+      var stations = [
+        { name: "Farm", x: w * 0.12, y: h * 0.72, color: "#B4E76B", icon: "🌱" },
+        { name: "Wholesale Mandi", x: w * 0.35, y: h * 0.38, color: "#35A853", icon: "🏬" },
+        { name: "Cold Logistics", x: w * 0.58, y: h * 0.65, color: "#64B5F6", icon: "🚚" },
+        { name: "Supermarket", x: w * 0.80, y: h * 0.35, color: "#FFB74D", icon: "🛒" },
+        { name: "Kitchen Table", x: w * 0.90, y: h * 0.78, color: "#E040FB", icon: "🍽️" }
+      ];
+
+      // Draw Glowing Route Curve
+      ctx.beginPath();
+      ctx.moveTo(stations[0].x, stations[0].y);
+      for (var i = 1; i < stations.length; i++) {
+        var prev = stations[i - 1];
+        var curr = stations[i];
+        var midX = (prev.x + curr.x) / 2;
+        var midY = (prev.y + curr.y) / 2 + (i % 2 === 0 ? 30 : -30);
+        ctx.quadraticCurveTo(midX, midY, curr.x, curr.y);
+      }
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "rgba(53, 168, 83, 0.35)";
+      ctx.stroke();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#B4E76B";
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -truckProgress * 100;
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset dash
+
+      // Draw Station Hubs
+      stations.forEach(function(st) {
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = "#153D2B";
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = st.color;
+        ctx.stroke();
+
+        ctx.font = "14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(st.icon, st.x, st.y);
+
+        ctx.font = "bold 10px sans-serif";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(st.name, st.x, st.y + 24);
+      });
+
+      // Animated Delivery Truck moving along route
+      if (isCanvasPlaying) {
+        truckProgress = (truckProgress + 0.003) % 1;
+      }
+
+      var numSegs = stations.length - 1;
+      var segIdx = Math.min(numSegs - 1, Math.floor(truckProgress * numSegs));
+      var localT = (truckProgress * numSegs) - segIdx;
+      var pA = stations[segIdx];
+      var pB = stations[segIdx + 1];
+      var truckX = pA.x + (pB.x - pA.x) * localT;
+      var truckY = pA.y + (pB.y - pA.y) * localT;
+
+      // Draw Truck
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(truckX - 12, truckY - 8, 20, 14);
+      ctx.fillStyle = "#B4E76B";
+      ctx.fillRect(truckX + 8, truckY - 4, 8, 10);
+      ctx.fillStyle = "#153D2B";
+      ctx.beginPath();
+      ctx.arc(truckX - 6, truckY + 8, 3, 0, Math.PI * 2);
+      ctx.arc(truckX + 10, truckY + 8, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(drawSupplyChainScene);
+    }
+
+    /* ==========================================================================
+       Cinematic Intro Animation Sequence
+       ========================================================================== */
+    function runIntroAnimation() {
+      var seed = document.getElementById('seedDot');
+      var ring = document.getElementById('sweepRing');
+      var logo = document.getElementById('logoSvg');
+      var title = document.getElementById('brandTitle');
+      var tag = document.getElementById('brandTagline');
+      var sub = document.getElementById('brandSubline');
+
+      // Phase 1 (0ms): Glowing seed active
+      setTimeout(function() {
+        // Phase 2 (700ms): Seed blossoms into sprout leaf & circular sweep
+        if (seed) seed.style.opacity = '0';
+        if (logo) logo.classList.add('revealed');
+        if (ring) ring.classList.add('active');
+      }, 700);
+
+      setTimeout(function() {
+        // Phase 3 (1600ms): Brand reveal
+        if (title) title.classList.add('revealed');
+        if (tag) tag.classList.add('revealed');
+        if (sub) sub.classList.add('revealed');
+      }, 1500);
+
+      setTimeout(function() {
+        // Phase 4 (3400ms): Website transition
+        skipSplash();
+      }, 3400);
+    }
+
+    function skipSplash() {
+      var splash = document.getElementById('splash-screen');
+      if (splash) splash.classList.add('hidden');
+    }
+
+    function replaySplash() {
+      var splash = document.getElementById('splash-screen');
+      if (!splash) return;
+      splash.classList.remove('hidden');
+      var seed = document.getElementById('seedDot');
+      var ring = document.getElementById('sweepRing');
+      var logo = document.getElementById('logoSvg');
+      var title = document.getElementById('brandTitle');
+      var tag = document.getElementById('brandTagline');
+      var sub = document.getElementById('brandSubline');
+
+      if (seed) seed.style.opacity = '1';
+      if (logo) logo.classList.remove('revealed');
+      if (ring) ring.classList.remove('active');
+      if (title) title.classList.remove('revealed');
+      if (tag) tag.classList.remove('revealed');
+      if (sub) sub.classList.remove('revealed');
+
+      runIntroAnimation();
+    }
+
+    // Initialize application on load
+    window.addEventListener('DOMContentLoaded', function() {
+      resizeCanvas();
+      drawSupplyChainScene();
+      runIntroAnimation();
+
+      setDataMode(currentDataMode);
+      renderLivePurchases();
+      renderProduceMarket();
+      renderDashboard();
+      populateTestScanPills();
+    });
+  </script>
+</body>
+</html>
